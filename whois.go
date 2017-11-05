@@ -26,7 +26,7 @@ func queryServer(server string, domain string) (string, error) {
 	return string(buffer[:]), nil
 }
 
-var serverRegexp, _ = regexp.Compile("(?im)^.*whois.*:.*$")
+var serverRegexp, _ = regexp.Compile(`(?im)^.*whois.*:\s*[a-z0-9\-\.]+\s*$`)
 
 func findServer(record string) string {
 	line := serverRegexp.FindString(record)
@@ -74,6 +74,10 @@ func GetWhois(domain string) (string, error) {
 	}
 
 	registrarServer := findServer(registryRecord)
+
+  if len(registrarServer) == 0 {
+    return registryRecord, nil
+  }
 
 	registrarRecord, err := queryServer(registrarServer, domain)
 	if err != nil {
