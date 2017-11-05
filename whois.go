@@ -75,9 +75,9 @@ func GetWhois(domain string) (string, error) {
 
 	registrarServer := findServer(registryRecord)
 
-  if len(registrarServer) == 0 {
-    return registryRecord, nil
-  }
+	if len(registrarServer) == 0 {
+		return registryRecord, nil
+	}
 
 	registrarRecord, err := queryServer(registrarServer, domain)
 	if err != nil {
