@@ -27,12 +27,22 @@ func queryServer(server string, domain string) (string, error) {
 }
 
 var serverRegexp, _ = regexp.Compile(`(?im)^.*whois.*:\s*[a-z0-9\-\.]+\s*$`)
+var domainRegexp, _ = regexp.Compile(`(?im)^.*domain.*:.*$`)
 
 func findServer(record string) string {
 	line := serverRegexp.FindString(record)
 	fields := strings.Fields(line)
 	if len(fields) > 0 {
 		return fields[len(fields)-1]
+	}
+	return ""
+}
+
+func findTld(record string) string {
+	line := domainRegexp.FindString(record)
+	fields := strings.Fields(line)
+	if len(fields) > 0 {
+		return strings.ToLower(fields[len(fields)-1])
 	}
 	return ""
 }
@@ -44,7 +54,19 @@ func getRegistryServer(domain string) (string, error) {
 	}
 
 	server := findServer(record)
-	if len(server) == 0 {
+	if len(server) > 0 {
+		return server, nil
+	}
+
+	tld := findTld(record)
+	if len(tld) == 0 {
+		return "", fmt.Errorf("Whois server for %s not found", domain)
+	}
+
+	server = "whois.nic." + tld
+
+	_, err = queryServer(server, "nic."+tld)
+	if err != nil {
 		return "", fmt.Errorf("Whois server for %s not found", domain)
 	}
 
